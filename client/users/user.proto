@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package users;
+
+option go_package = "github.com/grpc-go;users";
+
+message User {
+    string id = 1;
+    string name = 2;
+    string from = 3;
+    map<string, string> deatails = 4;
+}
+
+message UserCreate {
+    string id = 1;
+    string name = 2;
+    string from = 3;
+    int32 age = 4;
+}
+
+message UserRequest {
+    string id = 1;
+}
+
+message UserResponse {
+    string id = 1;
+    string name = 2;
+    string from = 3;
+    int32 age = 4;
+}
+
+message CreationResult {
+    string result = 1;
+    int32 code = 2;
+}
+
+service UserService {
+    rpc GetUser(UserRequest) returns (UserResponse);
+    rpc CreateUser(UserCreate) returns (CreationResult);
+}
