@@ -85,6 +85,25 @@ func (s *Server) BidirectionalStream(stream users.UserService_BidirectionalStrea
 	return nil
 }
 
+func LoggingInterceptor() grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
+		fmt.Println("Logging")
+
+		resp, err = handler(ctx, req)
+		return resp, err
+	}
+}
+
+func TiimingInterceptor() grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
+		start := time.Now()
+		resp, err = handler(ctx, req)
+		difference := time.Since(start)
+		fmt.Println("Elasped time:", difference)
+		return resp, err
+	}
+}
+
 func main() {
 	fmt.Println("Starting grpc server")
 
@@ -93,7 +112,10 @@ func main() {
 		log.Fatalf("Failed to create lister. Error: %v", err)
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(grpc.ChainUnaryInterceptor(
+		grpc.UnaryServerInterceptor(LoggingInterceptor()),
+		grpc.UnaryServerInterceptor(TiimingInterceptor()),
+	))
 	users.RegisterUserServiceServer(grpcServer, &Server{})
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("Failed to start grpc server. Error: %v", err)
